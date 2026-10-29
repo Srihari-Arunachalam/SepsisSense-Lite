@@ -1,0 +1,6 @@
+{
+  "name": "SepsisSense Lite",
+  "description": "AI-Powered Sepsis Early Warning System and Clinical Decision-Support System",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,43 @@
+
+# Python virtual environments
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node.js dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+coverage/
+
+# Environment variables and secrets
+.env*
+!.env.example
+.streamlit/secrets.toml
+
+# IDE and operating system files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Large datasets
+*.parquet
+training_setA/
+training_setB/
+
+# Generated files
+.system_generated/
+
+# Training backups and sensitive sample files
+work/backup_partial/
+work/case_septic_A_p003657.png
+work/notes_examples.csv
+s

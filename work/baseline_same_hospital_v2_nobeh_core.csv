@@ -1,0 +1,10 @@
+method,AUROC_row,septic_alerted_1to12h_%,nonseptic_alerted_%,alerts_per_100_pt_days,median_lead_h
+SepsisSense (score only),0.8962,79.5,24.5,51.5,6.0
+SepsisSense (+ immediate rules),0.8962,88.4,66.9,131.6,7.0
+"qSOFA-lite >= 2 [standard, single reading]",0.5891,21.1,28.0,35.3,6.0
+"NEWS2-lite >= 5 [standard, single reading]",0.6364,55.2,58.9,97.9,7.0
+"NEWS2-lite >= 7 [standard, single reading]",0.6364,23.9,23.1,29.8,5.0
+"SIRS-lite >= 2 [standard, single reading]",0.6535,75.5,73.0,159.0,7.0
+"qSOFA-lite >= 2 [2 consecutive, matched false-alert rate]",0.5891,10.5,12.9,15.0,6.0
+"NEWS2-lite >= 6 [2 consecutive, matched false-alert rate]",0.6364,21.6,20.9,27.3,6.0
+"SIRS-lite >= 3 [2 consecutive, matched false-alert rate]",0.6535,24.5,23.7,34.2,6.0
