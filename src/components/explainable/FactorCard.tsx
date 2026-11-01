@@ -60,15 +60,15 @@ export const FactorCard: React.FC<FactorCardProps> = ({ factor, rank, showDoctor
     >
       <div>
         {/* Header: Icon, Name, Rank, and Status Badge */}
-        <div className="flex items-start justify-between gap-3 mb-2.5">
-          <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap sm:flex-nowrap items-start justify-between gap-2.5 mb-2.5">
+          <div className="flex items-center gap-2 min-w-0">
             {/* Emoji container */}
-            <span className="text-2xl shrink-0 p-1 bg-white rounded-xl shadow-2xs border border-slate-200/60" role="img" aria-hidden="true">
+            <span className="text-xl sm:text-2xl shrink-0 p-1 bg-white rounded-xl shadow-2xs border border-slate-200/60" role="img" aria-hidden="true">
               {factor.config.icon}
             </span>
 
-            <div>
-              <div className="flex items-center gap-1.5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
                   {factorTranslation?.name || factor.config.nameKey}
                 </h3>
@@ -102,7 +102,7 @@ export const FactorCard: React.FC<FactorCardProps> = ({ factor, rank, showDoctor
 
               {/* Doctor Term (shown in Doctor View or subtle subtitle) */}
               {showDoctorTerm && (
-                <p className="text-[11px] font-semibold text-blue-700 italic">
+                <p className="text-[11px] font-semibold text-blue-700 italic truncate">
                   {factorTranslation?.doctorTerm || factor.config.doctorTermKey}
                 </p>
               )}
@@ -110,7 +110,7 @@ export const FactorCard: React.FC<FactorCardProps> = ({ factor, rank, showDoctor
           </div>
 
           {/* Status Badge */}
-          <div className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shrink-0 ${cardTheme.badgeBg}`}>
+          <div className={`px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold border flex items-center gap-1.5 shrink-0 whitespace-nowrap self-start ${cardTheme.badgeBg}`}>
             {cardTheme.icon}
             <span>{cardTheme.statusText}</span>
           </div>

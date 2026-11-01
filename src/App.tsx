@@ -4,9 +4,9 @@ import { ClinicalCard } from './components/ClinicalCard';
 import { ChatInputBar } from './components/ChatInputBar';
 import { UploadModal } from './components/UploadModal';
 import { ResultPanel } from './components/ResultPanel';
-import { MedicalLoadingAnimation } from './components/MedicalLoadingAnimation';
 import { ClinicalReportModal } from './components/ClinicalReportModal';
 import { MedicalExplanationsGuide } from './components/MedicalExplanationsGuide';
+import { MedicalLoadingAnimation } from './components/MedicalLoadingAnimation';
 import { AlertCircle, MessageSquare } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './i18n/LanguageContext';
 import {
@@ -318,14 +318,14 @@ function DashboardContent() {
         creatinine: parseFloat(targetForm.creatinine)
       };
 
-      const [response] = await Promise.all([
-        fetch('/predict', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }),
-        new Promise((resolve) => setTimeout(resolve, 3500))
-      ]);
+      const fetchPromise = fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const timerPromise = new Promise((resolve) => setTimeout(resolve, 3400));
+      const [response] = await Promise.all([fetchPromise, timerPromise]);
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to analyze sample data.');
 
@@ -336,7 +336,7 @@ function DashboardContent() {
       });
 
       setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
     } catch (err: any) {
       setAnalysisError(err.message || 'Error executing clinical analysis.');
@@ -372,11 +372,6 @@ function DashboardContent() {
     setPredictionResult(null);
     const clientStartTime = performance.now();
 
-    // Scroll smoothly to loading animation
-    setTimeout(() => {
-      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
-
     try {
       const payload = {
         age: form.age ? parseInt(form.age, 10) : null,
@@ -392,15 +387,13 @@ function DashboardContent() {
         wbc: form.wbc ? parseFloat(form.wbc) : null
       };
 
-      // Run prediction concurrently with 3.5-second medical animation sequence
-      const [response] = await Promise.all([
-        fetch('/predict', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }),
-        new Promise((resolve) => setTimeout(resolve, 3500))
-      ]);
+      const fetchPromise = fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const timerPromise = new Promise((resolve) => setTimeout(resolve, 3400));
+      const [response] = await Promise.all([fetchPromise, timerPromise]);
 
       const data = await response.json();
       if (!response.ok) {
@@ -537,7 +530,11 @@ function DashboardContent() {
 
         {/* Results Section */}
         <div ref={resultRef} className="w-full">
-          {isAnalyzing && <MedicalLoadingAnimation />}
+          {isAnalyzing && (
+            <div className="w-full my-6">
+              <MedicalLoadingAnimation />
+            </div>
+          )}
 
           {!isAnalyzing && predictionResult && (
             <ResultPanel

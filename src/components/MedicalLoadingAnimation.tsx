@@ -1,114 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Brain, Activity, Sparkles } from 'lucide-react';
+import { Heart, Brain, Sparkles, Activity } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
-
-// Custom Anatomical Lungs SVG Icon matching Lucide style and stroke
-const LungsIcon: React.FC<{ className?: string }> = ({ className = 'w-8 h-8' }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    aria-label="Lungs Icon"
-  >
-    <path d="M12 3v6" />
-    <path d="M12 6c-2.5 0-5 1.5-6 4-1.2 3-2.5 5.5-2 9a4 4 0 0 0 8 1V9" />
-    <path d="M12 6c2.5 0 5 1.5 6 4 1.2 3 2.5 5.5 2 9a4 4 0 0 1-8 1V9" />
-    <path d="M8.5 14.5c.8 1 1.8 1.5 3.5 1.5" />
-    <path d="M15.5 14.5c-.8 1-1.8 1.5-3.5 1.5" />
-  </svg>
-);
 
 export const MedicalLoadingAnimation: React.FC = () => {
   const { language } = useLanguage();
-  const [stepIndex, setStepIndex] = useState(0);
-  const [progress, setProgress] = useState(10);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  // Multilingual step messages
-  const steps = [
-    {
-      title:
-        language === 'ta'
-          ? 'உடல் முக்கிய அளவுகள் பகுப்பாய்வு செய்யப்படுகிறது...'
-          : language === 'hi'
-          ? 'शारीरिक महत्वपूर्ण संकेतों का विश्लेषण...'
-          : language === 'te'
-          ? 'శరీర ముఖ్య కొలతలను విశ్లేషిస్తోంది...'
-          : language === 'ml'
-          ? 'ശരീര ലക്ഷണങ്ങൾ വിശകലനം ചെയ്യുന്നു...'
-          : 'Analyzing Vitals...',
-      subtitle:
-        language === 'ta'
-          ? 'இதயத் துடிப்பு, இரத்த அழுத்தம், வெப்பநிலை மற்றும் சுவாச விகிதம் சரிபார்க்கப்படுகிறது'
-          : language === 'hi'
-          ? 'हृदय गति, रक्तचाप, तापमान एवं श्वसन दर का सत्यापन'
-          : language === 'te'
-          ? 'గుండె చప్పుడు, రక్తపోటు, ఉష్ణోగ్రత మరియు శ్వాస వేగం తనిఖీ'
-          : language === 'ml'
-          ? 'പൾസ്, രക്തസമ്മർദ്ദം, താപനില, ശ്വാസോച്ഛ്വാസം പരിശോധിക്കുന്നു'
-          : 'Verifying Heart Rate, Blood Pressure, Temperature & Respiratory Rate',
-      activeOrgan: 'heart'
-    },
-    {
-      title:
-        language === 'ta'
-          ? 'மருத்துவத் தரவுகள் செயலாக்கப்படுகிறது...'
-          : language === 'hi'
-          ? 'नैदानिक डेटा संसाधित किया जा रहा है...'
-          : language === 'te'
-          ? 'క్లినికల్ సమాచారాన్ని పరిశీలిస్తోంది...'
-          : language === 'ml'
-          ? 'ക്ലിനിക്കൽ വിവരങ്ങൾ പരിശോധിക്കുന്നു...'
-          : 'Processing Clinical Data...',
-      subtitle:
-        language === 'ta'
-          ? 'லாக்டேட், கிரியேட்டினின், qSOFA மற்றும் SIRS அளவுகோல்கள் கணக்கிடப்படுகிறது'
-          : language === 'hi'
-          ? 'लैक्टेट, क्रिएटिनिन, qSOFA एवं SIRS मानदंडों की गणना'
-          : language === 'te'
-          ? 'లాక్టేట్, క్రియాటినిన్, qSOFA మరియు SIRS ప్రమాణాల లెక్కింపు'
-          : language === 'ml'
-          ? 'ലാക്റ്റേറ്റ്, ക്രിയാറ്റിനിൻ, qSOFA, SIRS മാനദണ്ഡങ്ങൾ കണക്കാക്കുന്നു'
-          : 'Computing Lactate, Creatinine, qSOFA & SIRS Biomarkers',
-      activeOrgan: 'brain'
-    },
-    {
-      title:
-        language === 'ta'
-          ? 'AI செப்சிஸ் கணிப்பு உருவாக்கப்படுகிறது...'
-          : language === 'hi'
-          ? 'एआई सेप्सिस भविष्यवाणी तैयार की जा रही है...'
-          : language === 'te'
-          ? 'AI అంచనా రూపొందించబడుతోంది...'
-          : language === 'ml'
-          ? 'AI പ്രവചനം തയ്യാറാക്കുന്നു...'
-          : 'Generating Prediction...',
-      subtitle:
-        language === 'ta'
-          ? 'அபாய நிலை மற்றும் மருத்துவ வழிகாட்டுதல்கள் தொகுக்கப்படுகிறது'
-          : language === 'hi'
-          ? 'जोखिम वर्गीकरण एवं नैदानिक मार्गदर्शन तैयार'
-          : language === 'te'
-          ? 'రిస్క్ వర్గీకరణ మరియు అత్యవసర మార్గదర్శకాలు'
-          : language === 'ml'
-          ? 'അപകടസാധ്യതയും അടിയന്തര നിർദ്ദേശങ്ങളും തയ്യാറാക്കുന്നു'
-          : 'Synthesizing Risk Stratification & Clinical Guidance',
-      activeOrgan: 'lungs'
-    }
-  ];
+  // Multilingual animated loading messages matching existing language support
+  const messages: Record<string, string[]> = {
+    en: [
+      'Analyzing Vitals...',
+      'Processing Clinical Data...',
+      'Generating Prediction...'
+    ],
+    ta: [
+      'உடல் அளவுகள் ஆய்வு செய்யப்படுகிறது...',
+      'மருத்துவத் தரவுகள் செயலாக்கப்படுகிறது...',
+      'AI கணிப்பு உருவாக்கப்படுகிறது...'
+    ],
+    hi: [
+      'शारीरिक संकेतों का विश्लेषण किया जा रहा है...',
+      'नैदानिक डेटा संसाधित किया जा रहा है...',
+      'एआई भविष्यवाणी तैयार की जा रही है...'
+    ],
+    te: [
+      'శరీర సంకేతాల విశ్లేషణ జరుగుతోంది...',
+      'క్లినికల్ డేటా ప్రాసెస్ చేయబడుతోంది...',
+      'AI అంచనా రూపొందించబడుతోంది...'
+    ],
+    ml: [
+      'ശരീര ലക്ഷണങ്ങൾ വിശകലനം ചെയ്യുന്നു...',
+      'ക്ലിനിക്കൽ വിവരങ്ങൾ പ്രോസസ്സ് ചെയ്യുന്നു...',
+      'AI പ്രവചനം തയ്യാറാക്കുന്നു...'
+    ]
+  };
 
-  // Step sequencer: changes message at 1.2s and 2.4s
+  const activeMessages = messages[language] || messages.en;
+
   useEffect(() => {
-    const t1 = setTimeout(() => {
-      setStepIndex(1);
-    }, 1200);
-
-    const t2 = setTimeout(() => {
-      setStepIndex(2);
-    }, 2400);
+    // Step transitions across 3.4-second cycle
+    const t1 = setTimeout(() => setCurrentStep(1), 1100);
+    const t2 = setTimeout(() => setCurrentStep(2), 2200);
 
     return () => {
       clearTimeout(t1);
@@ -116,182 +48,187 @@ export const MedicalLoadingAnimation: React.FC = () => {
     };
   }, []);
 
-  // Smooth progress bar increment
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 96) return 96;
-        return prev + 3;
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const current = steps[stepIndex];
-
   return (
-    <div
-      className="w-full max-w-4xl mx-auto my-8 bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-10 transition-all animate-in fade-in zoom-in-95 duration-300"
-      role="status"
-      aria-live="polite"
-    >
+    <div className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-md p-6 sm:p-8 animate-in fade-in duration-300">
       <style>{`
-        @keyframes customHeartbeat {
-          0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(225, 29, 72, 0.3)); }
-          12% { transform: scale(1.18); filter: drop-shadow(0 0 16px rgba(225, 29, 72, 0.65)); }
-          24% { transform: scale(0.98); }
-          36% { transform: scale(1.14); filter: drop-shadow(0 0 12px rgba(225, 29, 72, 0.55)); }
-          50% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(225, 29, 72, 0.3)); }
-          100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(225, 29, 72, 0.3)); }
+        @keyframes heartbeat {
+          0% { transform: scale(1); }
+          12% { transform: scale(1.18); }
+          24% { transform: scale(1.04); }
+          38% { transform: scale(1.24); }
+          60% { transform: scale(1); }
+          100% { transform: scale(1); }
         }
 
-        @keyframes customBrainGlow {
-          0% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.3)); }
-          50% { transform: scale(1.09); filter: drop-shadow(0 0 18px rgba(99, 102, 241, 0.75)); }
-          100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.3)); }
+        @keyframes breathe {
+          0%, 100% { transform: scale(0.94); }
+          50% { transform: scale(1.14); }
         }
 
-        @keyframes customBreathing {
-          0% { transform: scale(0.93); filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.3)); }
-          50% { transform: scale(1.15); filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.7)); }
-          100% { transform: scale(0.93); filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.3)); }
+        @keyframes brainGlow {
+          0%, 100% {
+            filter: drop-shadow(0 0 3px rgba(0, 122, 120, 0.4));
+            transform: scale(1);
+          }
+          50% {
+            filter: drop-shadow(0 0 14px rgba(0, 122, 120, 0.85));
+            transform: scale(1.07);
+          }
         }
 
-        @keyframes pulseTrack {
-          0% { stroke-dashoffset: 40; }
-          100% { stroke-dashoffset: 0; }
-        }
-
-        .anim-heart {
-          animation: customHeartbeat 1.1s ease-in-out infinite;
-        }
-
-        .anim-brain {
-          animation: customBrainGlow 2.0s ease-in-out infinite;
-        }
-
-        .anim-lungs {
-          animation: customBreathing 2.4s ease-in-out infinite;
-        }
-
-        .anim-track {
-          stroke-dasharray: 6 6;
-          animation: pulseTrack 1.2s linear infinite;
+        @keyframes pulseFlow {
+          0% { stroke-dashoffset: 120; opacity: 0.3; }
+          50% { opacity: 1; }
+          100% { stroke-dashoffset: 0; opacity: 0.3; }
         }
       `}</style>
 
-      {/* Main Medical Animation Stage */}
-      <div className="flex flex-col items-center justify-center text-center">
+      {/* Main Container */}
+      <div className="max-w-xl mx-auto flex flex-col items-center text-center space-y-6">
         
-        {/* Top Header Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 border border-teal-200/80 text-xs font-extrabold text-[#007A78] mb-8">
-          <Sparkles className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '3s' }} />
-          <span>AI Clinical Analysis In Progress</span>
-        </div>
-
-        {/* 3 Medical Organs Stage with Connecting Pulse Circuit */}
-        <div className="relative w-full max-w-lg flex items-center justify-between px-4 sm:px-8 my-4">
+        {/* Animated Medical Icons Trio with Connecting Pulse Stream */}
+        <div className="relative w-full py-4 flex items-center justify-around">
           
-          {/* Background Connecting Wave / Circuit Track */}
-          <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-1 bg-slate-100 rounded-full overflow-hidden -z-0">
-            <div className="h-full bg-gradient-to-r from-rose-400 via-indigo-400 to-cyan-400 opacity-60 animate-pulse" />
+          {/* Subtle Telemetry Connecting Line */}
+          <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 pointer-events-none -z-0">
+            <svg className="w-full h-8" preserveAspectRatio="none" viewBox="0 0 300 32">
+              <path
+                d="M 10 16 L 80 16 L 90 6 L 100 26 L 110 16 L 190 16 L 200 6 L 210 26 L 220 16 L 290 16"
+                fill="none"
+                stroke="#007A78"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="8 6"
+                style={{
+                  animation: 'pulseFlow 1.8s linear infinite'
+                }}
+              />
+            </svg>
           </div>
 
-          {/* SVG Animated Pulse Line Overlay */}
-          <svg className="absolute left-6 right-6 top-1/2 -translate-y-1/2 w-[calc(100%-3rem)] h-6 pointer-events-none -z-0" viewBox="0 0 300 24" fill="none">
-            <path
-              d="M0 12 L70 12 L80 4 L90 20 L100 8 L110 16 L120 12 L180 12 L190 4 L200 20 L210 8 L220 16 L230 12 L300 12"
-              stroke="#007A78"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="anim-track"
-              opacity="0.8"
-            />
-          </svg>
-
-          {/* ================= 1. ANIMATED HEART (Heartbeat Effect) ================= */}
-          <div className="relative z-10 flex flex-col items-center">
+          {/* 1. ❤️ Heart with Heartbeat Contraction Effect */}
+          <div className="relative flex flex-col items-center z-10">
             <div
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center transition-all duration-300 ${
-                current.activeOrgan === 'heart'
-                  ? 'bg-rose-500 text-white shadow-xl shadow-rose-300 ring-4 ring-rose-200 scale-105'
-                  : 'bg-rose-50 text-rose-600 border-2 border-rose-200'
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center transition-all ${
+                currentStep === 0
+                  ? 'bg-rose-100 ring-4 ring-rose-400/30 shadow-lg shadow-rose-200/50'
+                  : 'bg-rose-50/80 ring-2 ring-rose-200'
               }`}
             >
-              <div className="anim-heart">
-                <Heart className="w-8 h-8 sm:w-10 sm:h-10 fill-current stroke-[1.8]" />
-              </div>
+              <Heart
+                className="w-8 h-8 sm:w-10 sm:h-10 text-rose-500 fill-rose-500/25"
+                style={{
+                  animation: 'heartbeat 1.2s ease-in-out infinite'
+                }}
+              />
             </div>
-            <span className="text-[11px] font-extrabold text-slate-700 mt-2.5">Heart</span>
-            <span className="text-[10px] font-semibold text-rose-600">Vitals Pulse</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-700 mt-2">
+              Vitals
+            </span>
           </div>
 
-          {/* ================= 2. ANIMATED BRAIN (Glowing Effect) ================= */}
-          <div className="relative z-10 flex flex-col items-center">
+          {/* 2. 🫁 Lungs with Smooth Expansion/Breathing Effect */}
+          <div className="relative flex flex-col items-center z-10">
             <div
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center transition-all duration-300 ${
-                current.activeOrgan === 'brain'
-                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-300 ring-4 ring-indigo-200 scale-105'
-                  : 'bg-indigo-50 text-indigo-600 border-2 border-indigo-200'
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center transition-all ${
+                currentStep === 1
+                  ? 'bg-cyan-100 ring-4 ring-cyan-400/30 shadow-lg shadow-cyan-200/50'
+                  : 'bg-cyan-50/80 ring-2 ring-cyan-200'
               }`}
             >
-              <div className="anim-brain">
-                <Brain className="w-8 h-8 sm:w-10 sm:h-10 stroke-[2]" />
+              {/* Anatomical Medical Lungs Icon with Breathing Scale */}
+              <div
+                style={{
+                  animation: 'breathe 2.4s ease-in-out infinite'
+                }}
+                className="text-cyan-600"
+              >
+                <svg
+                  className="w-8 h-8 sm:w-10 sm:h-10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  {/* Trachea & Bronchi */}
+                  <path d="M12 2v6" />
+                  <path d="M12 8c-2 0-3 1.5-4 3" />
+                  <path d="M12 8c2 0 3 1.5 4 3" />
+                  {/* Left Lung */}
+                  <path
+                    d="M6 11c-2.5 1-3.5 4-3.5 7 0 2.5 1.5 3.8 3.5 4 2.5.2 4-1.8 4-4.5V11c-.8-.2-2.5-.5-4 .5z"
+                    fill="currentColor"
+                    fillOpacity="0.2"
+                  />
+                  {/* Right Lung */}
+                  <path
+                    d="M18 11c2.5 1 3.5 4 3.5 7 0 2.5-1.5 3.8-3.5 4-2.5.2-4-1.8-4-4.5V11c.8-.2 2.5-.5 4 .5z"
+                    fill="currentColor"
+                    fillOpacity="0.2"
+                  />
+                </svg>
               </div>
             </div>
-            <span className="text-[11px] font-extrabold text-slate-700 mt-2.5">Neural Net</span>
-            <span className="text-[10px] font-semibold text-indigo-600">Model Logic</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-800 mt-2">
+              Respiration
+            </span>
           </div>
 
-          {/* ================= 3. ANIMATED LUNGS (Breathing Effect) ================= */}
-          <div className="relative z-10 flex flex-col items-center">
+          {/* 3. 🧠 Brain with Subtle Glowing/Synaptic Pulse Effect */}
+          <div className="relative flex flex-col items-center z-10">
             <div
-              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center transition-all duration-300 ${
-                current.activeOrgan === 'lungs'
-                  ? 'bg-cyan-600 text-white shadow-xl shadow-cyan-300 ring-4 ring-cyan-200 scale-105'
-                  : 'bg-cyan-50 text-cyan-600 border-2 border-cyan-200'
+              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center transition-all ${
+                currentStep === 2
+                  ? 'bg-teal-100 ring-4 ring-[#007A78]/30 shadow-lg shadow-teal-200/50'
+                  : 'bg-teal-50/80 ring-2 ring-teal-200'
               }`}
             >
-              <div className="anim-lungs">
-                <LungsIcon className="w-8 h-8 sm:w-10 sm:h-10 stroke-[2]" />
-              </div>
+              <Brain
+                className="w-8 h-8 sm:w-10 sm:h-10 text-[#007A78] fill-[#007A78]/25"
+                style={{
+                  animation: 'brainGlow 2.0s ease-in-out infinite'
+                }}
+              />
             </div>
-            <span className="text-[11px] font-extrabold text-slate-700 mt-2.5">Lungs</span>
-            <span className="text-[10px] font-semibold text-cyan-600">Oxygenation</span>
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#007A78] mt-2">
+              AI Engine
+            </span>
           </div>
 
         </div>
 
-        {/* Dynamic Changing Status Text Area */}
-        <div className="mt-8 mb-4 min-h-[72px] flex flex-col items-center justify-center transition-all duration-300">
-          <div className="flex items-center gap-2 text-slate-900 font-black text-lg sm:text-xl tracking-tight">
-            <Activity className="w-5 h-5 text-[#007A78] animate-pulse" />
-            <h3 className="animate-in fade-in slide-in-from-bottom-2 duration-300 key={stepIndex}">
-              {current.title}
-            </h3>
+        {/* Dynamic Status Text & Telemetry Indicator */}
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-[#007A78] text-xs font-bold shadow-2xs">
+            <Activity className="w-3.5 h-3.5 animate-pulse text-[#007A78]" />
+            <span>SepsisSense Lite AI Assessment</span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 max-w-md animate-in fade-in duration-300">
-            {current.subtitle}
+
+          <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight transition-all duration-300">
+            {activeMessages[currentStep]}
+          </h3>
+
+          <p className="text-xs text-slate-500 font-medium">
+            Cross-referencing qSOFA, SIRS criteria, and hemodynamic biomarkers
           </p>
         </div>
 
-        {/* Progress Bar in App Theme Teal */}
-        <div className="w-full max-w-md mt-2 space-y-2">
-          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/80">
+        {/* Smooth 3-Step Progress Track */}
+        <div className="w-full max-w-xs flex items-center justify-between gap-2 pt-1">
+          {[0, 1, 2].map((stepIdx) => (
             <div
-              className="h-full bg-gradient-to-r from-[#007A78] via-teal-500 to-[#006967] rounded-full transition-all duration-200 ease-out shadow-xs"
-              style={{ width: `${progress}%` }}
+              key={stepIdx}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                currentStep >= stepIdx ? 'bg-[#007A78]' : 'bg-slate-200'
+              }`}
             />
-          </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 font-semibold px-1">
-            <span>Stage {stepIndex + 1} of 3</span>
-            <span>{progress}%</span>
-          </div>
+          ))}
         </div>
 
       </div>
     </div>
   );
 };
+
