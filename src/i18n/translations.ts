@@ -1,6 +1,8 @@
 import { SupportedLanguage } from '../types';
+import { ExplainableTranslations } from './explainableTranslations';
 
 export interface Translations {
+  explainable?: ExplainableTranslations;
   header: {
     brandSubtitle: string;
     sampleCases: string;

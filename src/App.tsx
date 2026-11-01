@@ -4,9 +4,10 @@ import { ClinicalCard } from './components/ClinicalCard';
 import { ChatInputBar } from './components/ChatInputBar';
 import { UploadModal } from './components/UploadModal';
 import { ResultPanel } from './components/ResultPanel';
+import { MedicalLoadingAnimation } from './components/MedicalLoadingAnimation';
 import { ClinicalReportModal } from './components/ClinicalReportModal';
 import { MedicalExplanationsGuide } from './components/MedicalExplanationsGuide';
-import { AlertCircle, AlertTriangle, MessageSquare } from 'lucide-react';
+import { AlertCircle, MessageSquare } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './i18n/LanguageContext';
 import {
   PatientFormState,
@@ -303,6 +304,7 @@ function DashboardContent() {
 
     // Auto-calculate prediction and display percentage & scores immediately
     setIsAnalyzing(true);
+    setPredictionResult(null);
     const clientStartTime = performance.now();
     try {
       const payload = {
@@ -316,11 +318,14 @@ function DashboardContent() {
         creatinine: parseFloat(targetForm.creatinine)
       };
 
-      const response = await fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const [response] = await Promise.all([
+        fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }),
+        new Promise((resolve) => setTimeout(resolve, 3500))
+      ]);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to analyze sample data.');
 
@@ -331,7 +336,7 @@ function DashboardContent() {
       });
 
       setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (err: any) {
       setAnalysisError(err.message || 'Error executing clinical analysis.');
@@ -364,7 +369,13 @@ function DashboardContent() {
     }
 
     setIsAnalyzing(true);
+    setPredictionResult(null);
     const clientStartTime = performance.now();
+
+    // Scroll smoothly to loading animation
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
 
     try {
       const payload = {
@@ -381,11 +392,15 @@ function DashboardContent() {
         wbc: form.wbc ? parseFloat(form.wbc) : null
       };
 
-      const response = await fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      // Run prediction concurrently with 3.5-second medical animation sequence
+      const [response] = await Promise.all([
+        fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }),
+        new Promise((resolve) => setTimeout(resolve, 3500))
+      ]);
 
       const data = await response.json();
       if (!response.ok) {
@@ -487,27 +502,6 @@ function DashboardContent() {
           </h1>
         </div>
 
-        {/* Visible Emergency Warning Near Top of Page (Requirement 8) */}
-        <div className="max-w-4xl w-full mb-6 bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 text-amber-950 shadow-sm animate-in fade-in">
-          <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-            <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
-          </div>
-          <div className="flex-1 text-xs sm:text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-black text-amber-950 tracking-wide text-xs uppercase px-2 py-0.5 rounded-md bg-amber-200/80 border border-amber-300">
-                {language === 'en' ? 'Emergency Medical Warning' : 'அவசர மருத்துவ எச்சரிக்கை'}
-              </span>
-              <span className="text-[11px] font-semibold text-amber-800">
-                {language === 'en' ? 'Sepsis is Time-Critical' : 'நேர உணர்திறன் மருத்துவ நிலை'}
-              </span>
-            </div>
-            <p className="mt-1.5 text-amber-950 font-medium leading-relaxed">
-              {language === 'en'
-                ? 'Sepsis is a medical emergency. If the patient has severe shivering, confusion, extreme pain, or difficulty breathing, call for immediate emergency medical care (ambulance / ER). Do not delay getting emergency care.'
-                : 'செப்சிஸ் என்பது உயிருக்கு ஆபத்தான அவசர நிலை. நோயாளிக்கு கடுமையான நடுக்கம், மூச்சுத் திணறல், தீவிர வலி அல்லது மயக்கம் இருந்தால் தாமதிக்காமல் உடனடியாக அவசர மருத்துவ உதவியை நாடுங்கள்.'}
-            </p>
-          </div>
-        </div>
 
         {/* Global Error Banner */}
         {analysisError && (
@@ -543,9 +537,12 @@ function DashboardContent() {
 
         {/* Results Section */}
         <div ref={resultRef} className="w-full">
-          {predictionResult && (
+          {isAnalyzing && <MedicalLoadingAnimation />}
+
+          {!isAnalyzing && predictionResult && (
             <ResultPanel
               result={predictionResult}
+              form={form}
               onPrintReport={() => setIsReportOpen(true)}
               onReset={() => setPredictionResult(null)}
             />
@@ -616,6 +613,7 @@ function DashboardContent() {
 export default function App() {
   return (
     <LanguageProvider>
+    
       <DashboardContent />
     </LanguageProvider>
   );

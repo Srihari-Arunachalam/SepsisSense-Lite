@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { SupportedLanguage } from '../types';
 import { TRANSLATIONS, Translations } from './translations';
+import { EXPLAINABLE_TRANSLATIONS } from './explainableTranslations';
 
 interface LanguageContextType {
   language: SupportedLanguage;
@@ -442,13 +443,22 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     return action;
   };
 
+  const currentTranslations = useMemo(() => {
+    const base = TRANSLATIONS[language] || TRANSLATIONS.en;
+    const explainable = EXPLAINABLE_TRANSLATIONS[language] || EXPLAINABLE_TRANSLATIONS.en;
+    return {
+      ...base,
+      explainable
+    };
+  }, [language]);
+
   return (
     <LanguageContext.Provider
       value={{
         language,
         setLanguage,
         t,
-        translations: TRANSLATIONS[language] || TRANSLATIONS.en,
+        translations: currentTranslations,
         translateSepsisType,
         translateSuspectedSource,
         translateAdviceItem,
