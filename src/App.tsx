@@ -32,6 +32,33 @@ const DEFAULT_FORM: PatientFormState = {
   wbc: ''
 };
 
+// Safe JSON parser to handle network/HTML error pages without throwing SyntaxError
+async function parseResponseJson(response: Response, defaultError: string) {
+  let rawText = '';
+  try {
+    rawText = await response.text();
+  } catch {
+    throw new Error('Network error reading server response. Please ensure the server is running.');
+  }
+
+  try {
+    const data = JSON.parse(rawText);
+    if (!response.ok) {
+      throw new Error(data.error || data.message || defaultError);
+    }
+    return data;
+  } catch (parseErr: any) {
+    if (parseErr?.message && !parseErr.message.includes('JSON') && !parseErr.message.includes('token')) {
+      throw parseErr;
+    }
+    const cleanSnippet = rawText.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
+    if (!response.ok) {
+      throw new Error(`Server returned HTTP ${response.status}: ${cleanSnippet || defaultError}`);
+    }
+    throw new Error(cleanSnippet ? `Server error: ${cleanSnippet}` : defaultError);
+  }
+}
+
 function DashboardContent() {
   const { language, translations } = useLanguage();
   const [form, setForm] = useState<PatientFormState>(DEFAULT_FORM);
@@ -120,10 +147,7 @@ function DashboardContent() {
       clearInterval(progressTimer);
       setUploadProgress(100);
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to extract record.');
-      }
+      const data = await parseResponseJson(response, 'Failed to extract record.');
 
       const extractedInfo: ExtractedRecordData = {
         fileName: file.name,
@@ -326,8 +350,7 @@ function DashboardContent() {
       const timerPromise = new Promise((resolve) => setTimeout(resolve, 3400));
       const [response] = await Promise.all([fetchPromise, timerPromise]);
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to analyze sample data.');
+      const data = await parseResponseJson(response, 'Failed to analyze sample data.');
 
       const clientElapsedSec = parseFloat(((performance.now() - clientStartTime) / 1000).toFixed(2));
       setPredictionResult({
@@ -339,7 +362,12 @@ function DashboardContent() {
         resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
     } catch (err: any) {
-      setAnalysisError(err.message || 'Error executing clinical analysis.');
+      const msg = err?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('JSON')) {
+        setAnalysisError('Unable to connect to SepsisSense server. Please ensure the server is running on http://localhost:3000.');
+      } else {
+        setAnalysisError(err.message || 'Error executing clinical analysis.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -395,10 +423,7 @@ function DashboardContent() {
       const timerPromise = new Promise((resolve) => setTimeout(resolve, 3400));
       const [response] = await Promise.all([fetchPromise, timerPromise]);
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Clinical prediction failed.');
-      }
+      const data = await parseResponseJson(response, 'Clinical prediction failed.');
 
       const clientElapsedSec = parseFloat(((performance.now() - clientStartTime) / 1000).toFixed(2));
       setPredictionResult({
@@ -410,7 +435,12 @@ function DashboardContent() {
         resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (err: any) {
-      setAnalysisError(err.message || 'Error assessing sepsis risk.');
+      const msg = err?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('JSON')) {
+        setAnalysisError('Unable to connect to SepsisSense server. Please ensure the server is running on http://localhost:3000.');
+      } else {
+        setAnalysisError(err.message || 'Error assessing sepsis risk.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -433,8 +463,7 @@ function DashboardContent() {
         })
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to answer inquiry.');
+      const data = await parseResponseJson(response, 'Failed to answer inquiry.');
 
       setChatAnswer({
         query: text,
@@ -448,7 +477,7 @@ function DashboardContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fileContent: text, fileName: 'Clinician Query' })
         });
-        const extractData = await extractRes.json();
+        const extractData = await parseResponseJson(extractRes, 'Failed to extract vital values.');
         if (extractData.extracted) {
           const newForm = { ...form };
           const newSourceMap = { ...sourceMap };

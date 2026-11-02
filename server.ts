@@ -845,10 +845,24 @@ async function startServer() {
 
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n======================================================`);
-    console.log(`?? SepsisSense server listening on http://0.0.0.0:${PORT}`);
-    console.log(`?? Open in browser: http://localhost:${PORT}`);
+    console.log(`🚀 SepsisSense server listening on http://0.0.0.0:${PORT}`);
+    console.log(`🌐 Open in browser: http://localhost:${PORT}`);
     console.log(`======================================================\n`);
     
+    // Also listen on port 3001 if default is 3000 so both localhost:3000 and localhost:3001 work seamlessly
+    if (PORT === 3000) {
+      try {
+        const backupServer = app.listen(3001, '0.0.0.0', () => {
+          console.log(`📡 Also listening on backup port: http://localhost:3001`);
+        });
+        backupServer.on('error', () => {
+          // Silently ignore if 3001 is already in use
+        });
+      } catch {
+        // ignore
+      }
+    }
+
     // Auto-open default browser when server is ready
     if (process.platform === 'win32' && !process.env.NO_OPEN) {
       import('child_process').then(({ exec }) => {
